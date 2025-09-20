@@ -1,0 +1,9 @@
+[package]
+name = "courses-calculator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = "0.12.23"
+scraper = "0.24.0"
+tokio = { version = "1.47.1", features = ["rt", "rt-multi-thread", "macros"] }
