@@ -1,5 +1,5 @@
 use reqwest::Client;
-use scraper::{Html, Selector};
+use scraper::{Element, Html, Selector};
 
 #[tokio::main]
 async fn main() {
@@ -25,5 +25,20 @@ async fn main() {
     let stages_trs = Selector::parse("tr").unwrap();
     let stages_trs_elements = stages_tr.select(&stages_trs).skip(1);  // skip header
 
-    println!("{:?}", stages_trs_elements.collect::<Vec<_>>());
+    for stage in stages_trs_elements {
+        if stage.inner_html().contains("Total por somatório de ") {
+            continue;
+        }
+        if stage.inner_html().contains("Classificação Colectiva de Clubes") {
+            break;
+        }
+
+        let td = Selector::parse("td").unwrap();
+        let tds = stage.select(&td).collect::<Vec<_>>();
+        let stage_title = tds[0].select(&Selector::parse("a").unwrap()).next().unwrap().text().collect::<String>();
+        let stage_file = tds[2].select(&Selector::parse("a").unwrap()).last().unwrap().attr("href").unwrap();
+
+        println!("{}: {}", stage_title, stage_file)
+
+    }
 }
