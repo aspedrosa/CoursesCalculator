@@ -1,6 +1,6 @@
 use std::fs::{create_dir_all, File};
 use std::io::Write;
-use reqwest::Client;
+use reqwest::blocking::Client;
 use scraper::{Html, Selector};
 
 #[derive(Debug)]
@@ -9,7 +9,7 @@ struct Stage {
     file_link: String,
 }
 
-async fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
+fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
     let html_file_name = format!("data/html/{}.html", event_id);
 
     let html = match File::open(&html_file_name) {
@@ -20,13 +20,13 @@ async fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
         }
         Err(_) => {
             let client = Client::new();
-            let response = client.get(&format!("https://www.orioasis.pt/oasis/results.php?action=view_stages&eventid={}", event_id)).send().await.unwrap();
+            let response = client.get(&format!("https://www.orioasis.pt/oasis/results.php?action=view_stages&eventid={}", event_id)).send().unwrap();
 
             if !response.status().is_success() {
                 return Err(format!("Failed to get event stages: {}", response.status()));
             }
 
-            let html = response.text().await.unwrap();
+            let html = response.text().unwrap();
 
             create_dir_all("data/html").expect("Failed to create data directory");
             File::create(&html_file_name).expect("Failed to html event file").write_all(html.as_ref()).unwrap();
@@ -72,11 +72,10 @@ async fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
     Ok(stages)
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let event_id = 2994;  // entroncamento city race 2025
 
-    let stages = get_event_stages(event_id).await;
+    let stages = get_event_stages(event_id);
 
     for stage in stages {
         println!("{:?}", stage)
