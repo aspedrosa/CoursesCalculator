@@ -1,8 +1,7 @@
-use std::fmt::format;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
 use reqwest::Client;
-use scraper::{Element, Html, Selector};
+use scraper::{Html, Selector};
 
 #[derive(Debug)]
 struct Stage {
@@ -21,19 +20,20 @@ async fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
         }
         Err(_) => {
             let client = Client::new();
-            let html = client.get(&format!("https://www.orioasis.pt/oasis/results.php?action=view_stages&eventid={}", event_id)).send().await.unwrap().text().await.unwrap();
+            let response = client.get(&format!("https://www.orioasis.pt/oasis/results.php?action=view_stages&eventid={}", event_id)).send().await.unwrap();
 
-            // TODO only save if 200
+            if !response.status().is_success() {
+                return Err(format!("Failed to get event stages: {}", response.status()));
+            }
+
+            let html = response.text().await.unwrap();
+
             create_dir_all("data/html").expect("Failed to create data directory");
             File::create(&html_file_name).expect("Failed to html event file").write_all(html.as_ref()).unwrap();
 
             html
         }
     };
-
-    if html.contains("503 Service Unavailable") {
-        return Err(String::from("OriOasis returned 503 while fetchting stages"));
-    }
 
     let document = Html::parse_document(&html);
 
@@ -47,7 +47,7 @@ async fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
     let main_content_tbody_trs = main_content_tbody.select(&main_content_table_selector).next().unwrap();
 
     let stages_tr = main_content_tbody_trs.child_elements().skip(2).next().unwrap();
-    // skip event table + skip buttons tr
+    // skip event table tr + skip buttons tr
 
     let tr_sel = Selector::parse("tr").unwrap();
     let td_sel = Selector::parse("td").unwrap();
