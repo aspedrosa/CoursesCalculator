@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 reqwest = {  version = "0.12.23" , features = ["blocking"]}
 scraper = "0.24.0"
+polars = {  version = "0.51.0", features = ["csv"] }
+zip = "5.1.1"
