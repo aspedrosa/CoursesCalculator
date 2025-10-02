@@ -1,18 +1,12 @@
 use std::fs::{create_dir_all, File};
-use std::io::Write;
 use std::path::Path;
-use polars::prelude::{CsvParseOptions, CsvReadOptions};
-use polars::prelude::SerReader;
-use reqwest::blocking::Client;
+use reqwest::Client;
 use scraper::{Html, Selector};
+use std::io::Write;
 
-#[derive(Debug)]
-struct Stage {
-    title: String,
-    file_link: String,
-}
+use crate::Stage;
 
-fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
+pub async fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
     let html_file_name = format!("data/html/{}.html", event_id);
 
     let html = match File::open(&html_file_name) {
@@ -23,13 +17,13 @@ fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
         }
         Err(_) => {
             let client = Client::new();
-            let response = client.get(&format!("https://www.orioasis.pt/oasis/results.php?action=view_stages&eventid={}", event_id)).send().unwrap();
+            let response = client.get(&format!("https://www.orioasis.pt/oasis/results.php?action=view_stages&eventid={}", event_id)).send().await.unwrap();
 
             if !response.status().is_success() {
                 return Err(format!("Failed to get event stages: {}", response.status()));
             }
 
-            let html = response.text().unwrap();
+            let html = response.text().await.unwrap();
 
             create_dir_all("data/html").expect("Failed to create data directory");
             File::create(&html_file_name).expect("Failed to html event file").write_all(html.as_ref()).unwrap();
@@ -74,19 +68,19 @@ fn get_event_stages(event_id: u32) -> Result<Vec<Stage>, String> {
     Ok(stages)
 }
 
-fn download_stage_zip(event_id: u32, stage_id: u32, url: &str) -> Result<(), String> {
+pub async fn download_stage_zip(event_id: u32, stage_id: u32, url: &str) -> Result<(), String> {
     let filepath = format!("data/zip/{}/{}.zip", event_id, stage_id);
     if Path::exists(filepath.as_ref()) {
         return Ok(())
     }
 
     let client = Client::new();
-    let response = client.get(url).send().unwrap();
+    let response = client.get(url).send().await.unwrap();
     if !response.status().is_success() {
         return Err(format!("Failed to download zip: {}", filepath));
     }
 
-    let content = response.bytes().unwrap();
+    let content = response.bytes().await.unwrap();
     create_dir_all(format!("data/zip/{}", event_id)).expect("Failed to create data directory");
     let mut file = File::create(&filepath).expect("Failed to create zip file");
     file.write_all(&content).unwrap();
@@ -95,7 +89,7 @@ fn download_stage_zip(event_id: u32, stage_id: u32, url: &str) -> Result<(), Str
 
 }
 
-fn extract_stage_zip(event_id: u32, stage_id: u32) {
+pub fn extract_stage_zip(event_id: u32, stage_id: u32) {
     let zip_filepath = format!("data/zip/{}/{}.zip", event_id, stage_id);
     let extract_path = format!("data/unzipped/{}", event_id);
 
@@ -111,36 +105,4 @@ fn extract_stage_zip(event_id: u32, stage_id: u32) {
     std::io::copy(&mut file, &mut outfile).expect("Failed to copy file content");
 
     println!("Extracted: {}", extract_path);
-}
-
-fn calc_best_portuguese_per_class(stage_df: &polars::prelude::DataFrame) {
-}
-
-fn calc_best_per_class(stage_df: &polars::prelude::DataFrame) {
-}
-
-fn main() {
-    let event_id = 2994;  // entroncamento city race 2025
-
-    let stages = get_event_stages(event_id);
-    if let Ok(stages) = stages {
-        for (stage_id, stage) in stages.iter().enumerate() {
-            download_stage_zip(event_id, stage_id as u32, stage.file_link.as_str()).expect(format!("Failed to download stage zip: {}", stage.title).as_str());
-
-            extract_stage_zip(event_id, stage_id as u32);
-
-            let csv_path = format!("data/unzipped/{}/{}.csv", event_id, stage_id);
-
-            let df_csv = CsvReadOptions::default()
-                .with_has_header(true)
-                .with_parse_options(
-                    CsvParseOptions::default()
-                        .with_separator(b';')
-                        .with_truncate_ragged_lines(true)
-                ).try_into_reader_with_file_path(Some(csv_path.into()))
-                .unwrap().finish().unwrap();
-
-            println!("{}", df_csv);
-        }
-    }
 }
