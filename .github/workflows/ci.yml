@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+      - issue1-exclude-github-dir-from-ci
+    paths-ignore:
+      - '.github/**'
+      - 'infra'
+      - '**.md'
 
 jobs:
   ci:
