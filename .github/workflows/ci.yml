@@ -1,9 +1,14 @@
 name: Continuous Integration
 on:
-  workflow_call:
+  workflow_dispatch:
   push:
     branches:
       - main
+      - issue1-exclude-github-dir-from-ci
+    paths-ignore:
+      - '.github/**'
+      - 'infra'
+      - '**.md'
 
 jobs:
   ci:
