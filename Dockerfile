@@ -32,7 +32,7 @@ EOF
 FROM debian:trixie-slim AS final
 
 RUN apt update \
- && apt install -y --no-install-recommends curl \
+ && apt install -y --no-install-recommends ca-certificates curl \
  && apt clean
 
 # Copy the executable from the "build" stage.
@@ -43,6 +43,5 @@ EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
-
 
 ENTRYPOINT ["/bin/server"]
