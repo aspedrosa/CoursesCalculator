@@ -31,11 +31,18 @@ EOF
 
 FROM debian:trixie-slim AS final
 
+RUN apt update \
+ && apt install -y --no-install-recommends curl \
+ && apt clean
+
 # Copy the executable from the "build" stage.
 COPY --from=build /bin/server /bin/
 
 # Expose the port that the application listens on.
 EXPOSE 3000
 
-# What the container should run when it is started.
-CMD ["/bin/server"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+
+ENTRYPOINT ["/bin/server"]
