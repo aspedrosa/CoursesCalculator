@@ -1,4 +1,5 @@
 mod event_scrape;
+mod storage;
 
 use std::sync::Arc;
 use polars::prelude::{CsvParseOptions, CsvReadOptions, DataType, Field, Schema, SchemaRef};
