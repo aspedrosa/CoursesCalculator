@@ -12,4 +12,3 @@ The end goal would be to deploy the application on a cloud platform and automate
 
 ## References
 
-https://www.scrapingdog.com/blog/web-scraping-with-rust/

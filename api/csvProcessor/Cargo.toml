@@ -1,0 +1,12 @@
+[package]
+name = "csv_processor"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+polars = { version = "0.45", features = ["lazy", "csv", "dtype-date", "dtype-datetime"] }
+libc = "0.2"
+
