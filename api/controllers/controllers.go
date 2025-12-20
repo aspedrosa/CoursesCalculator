@@ -12,4 +12,9 @@ func RegisterControllers(r *gin.Engine) {
 	})
 
 	r.POST("/fetch_events", FetchEvents)
+
+	sessionsGroup := r.Group("/course_calculator_session")
+	sessionsGroup.POST("", CreateCourseCalculatorSession)
+	sessionsGroup.POST("/:sessionID/attach", AttachEventStageToSession)
+	sessionsGroup.POST("/:sessionID/remove", RemoveEventStageFromSession)
 }

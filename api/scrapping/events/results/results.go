@@ -1,7 +1,6 @@
 package results
 
 import (
-	. "courses-calculator/models"
 	. "courses-calculator/storage"
 
 	"archive/zip"
@@ -16,7 +15,12 @@ import (
 
 var ORIOASIS_BASE_URL = "https://www.orioasis.pt/oasis"
 
-func GetEventStages(eventID uint32) ([]Stage, error) {
+type stage struct {
+	Title    string
+	FileLink string
+}
+
+func GetEventStages(eventID uint32) ([]stage, error) {
 	sb := NewStorageBackend()
 	fileID := FileIdentifier{Type: FileTypeHTML, EventID: eventID}
 
@@ -54,7 +58,7 @@ func GetEventStages(eventID uint32) ([]Stage, error) {
 		return nil, fmt.Errorf("failed to parse html: %w", err)
 	}
 
-	var finalStages []Stage
+	var finalStages []stage
 
 	// Get results table
 	divContent := doc.Find("div.content").First()
@@ -108,7 +112,7 @@ func GetEventStages(eventID uint32) ([]Stage, error) {
 			return
 		}
 
-		finalStages = append(finalStages, Stage{
+		finalStages = append(finalStages, stage{
 			Title:    title,
 			FileLink: link,
 		})
