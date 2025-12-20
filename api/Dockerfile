@@ -4,7 +4,7 @@ RUN apk add --no-cache musl-dev
 
 COPY csvProcessor /app/csvProcessor
 WORKDIR /app/csvProcessor
-RUN ls -l && sleep 5 && cargo build --release
+RUN cargo build --release
 
 # Stage 2: Build Go application
 FROM golang:1.24-alpine AS build
