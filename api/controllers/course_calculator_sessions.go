@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	service "courses-calculator/service/course_calculator_session"
+	service "courses-calculator/service/session"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

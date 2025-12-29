@@ -6,7 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterControllers(r *gin.Engine) {
+func SetupRouter() *gin.Engine {
+	r := gin.Default()
+
 	r.GET("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "Ok")
 	})
@@ -17,4 +19,6 @@ func RegisterControllers(r *gin.Engine) {
 	sessionsGroup.POST("", CreateCourseCalculatorSession)
 	sessionsGroup.POST("/:sessionID/attach", AttachEventStageToSession)
 	sessionsGroup.POST("/:sessionID/remove", RemoveEventStageFromSession)
+
+	return r
 }

@@ -2,14 +2,13 @@ package main
 
 import (
 	"courses-calculator/controllers"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	r := gin.Default()
+	r := controllers.SetupRouter()
 
-	controllers.RegisterControllers(r)
-
-	r.Run(":3000")
+	err := r.Run(":3000")
+	if err != nil {
+		panic(err)
+	}
 }

@@ -1,4 +1,4 @@
-package course_calculator_session
+package session
 
 import (
 	"courses-calculator/models"
